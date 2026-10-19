@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Excluir conta · Reinos e Eras</title>
+<style>
+  :root { --fundo: #f6f1e7; --texto: #2b2118; --suave: #6b5a48; --borda: #d9cdb8; --link: #8a4b14; --caixa: #fffaf1; --erro: #a3261b; --ok: #2f6b2a; }
+  @media (prefers-color-scheme: dark) { :root { --fundo: #17110b; --texto: #efe4d2; --suave: #b9a68c; --borda: #3a2d20; --link: #f0b45a; --caixa: #20180f; --erro: #f08a7e; --ok: #8fd287; } }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.8rem; margin: 0 0 4px; } h2 { font-size: 1.15rem; margin: 28px 0 6px; padding-top: 12px; border-top: 1px solid var(--borda); }
+  .sub { color: var(--suave); margin: 0 0 20px; } a { color: var(--link); } li { margin: 4px 0; }
+  form { background: var(--caixa); border: 1px solid var(--borda); border-radius: 10px; padding: 16px; margin: 12px 0; }
+  label { display: block; font-weight: 600; margin: 10px 0 4px; }
+  input { box-sizing: border-box; width: 100%; padding: 10px; font: inherit; border: 1px solid var(--borda); border-radius: 8px; background: var(--fundo); color: var(--texto); }
+  button { margin-top: 14px; padding: 10px 18px; font: inherit; font-weight: 600; border: 0; border-radius: 8px; background: var(--erro); color: #fff; cursor: pointer; }
+  button:disabled { opacity: .6; cursor: default; }
+  .msg { margin: 10px 0 0; font-weight: 600; } .msg.erro { color: var(--erro); } .msg.ok { color: var(--ok); }
+  .confirma { display: flex; gap: 8px; align-items: flex-start; font-weight: 400; } .confirma input { width: auto; margin-top: 6px; }
+</style>
+</head>
+<body>
+<main>
+<h1>Excluir conta e dados</h1>
+<p class="sub">Reinos e Eras</p>
+
+<p>Aqui você apaga do nosso servidor a sua conta e tudo o que está ligado à sua vila. <b>Não dá para desfazer.</b></p>
+
+<h2>O que é apagado</h2>
+<ul>
+  <li>a conta (nome de usuário e senha);</li>
+  <li>o progresso da vila salvo no servidor;</li>
+  <li>a vila publicada para os duelos entre jogadores, com vitórias, derrotas e avisos de ataques;</li>
+  <li>os itens da loja ligados à vila.</li>
+</ul>
+<p>Os registros de pagamento (número do pedido, item, valor e data) são guardados pelo prazo que a lei fiscal exige e não são usados para mais nada. O que o Google coleta para os anúncios segue a <a href="https://policies.google.com/technologies/ads">política do Google</a>; para redefinir o ID de publicidade, use as configurações do Android.</p>
+
+<h2>Com usuário e senha</h2>
+<form id="fConta">
+  <label for="usuario">Usuário</label>
+  <input id="usuario" autocomplete="username" required minlength="3" maxlength="20">
+  <label for="senha">Senha</label>
+  <input id="senha" type="password" autocomplete="current-password" required minlength="6" maxlength="100">
+  <label class="confirma"><input type="checkbox" required> Entendo que a conta e a vila serão apagadas para sempre.</label>
+  <button>Excluir minha conta</button>
+  <p class="msg" role="status"></p>
+</form>
+<p>Esqueceu a senha? <a href="recuperar-senha.html">Recupere aqui</a> ou use o código da vila abaixo.</p>
+
+<h2>Com o código da vila (jogou sem conta)</h2>
+<p>No jogo, abra o <b>Menu</b> e copie o código da vila (ele aparece na caixa de texto do Menu).</p>
+<form id="fCodigo">
+  <label for="codigo">Código da vila</label>
+  <input id="codigo" required autocomplete="off" spellcheck="false">
+  <label class="confirma"><input type="checkbox" required> Entendo que a vila (e a conta ligada a ela, se houver) serão apagadas para sempre.</label>
+  <button>Excluir meus dados</button>
+  <p class="msg" role="status"></p>
+</form>
+
+<h2>Sem acesso ao jogo</h2>
+<p>Se você não lembra a senha e não tem mais o código da vila, peça a exclusão por e-mail para <a href="mailto:eduardojvr10@gmail.com?subject=Reinos%20e%20Eras%20-%20excluir%20conta">eduardojvr10@gmail.com</a>, com o nome de usuário ou o nome da vila. Respondemos em até 15 dias.</p>
+
+<h2>Depois de excluir</h2>
+<p>A cópia da vila que está no aparelho não é apagada pelo servidor. Para apagá-la também, use <b>Nova vila</b> no Menu do jogo ou desinstale o app. Se você continuar jogando com essa cópia, uma nova vila é salva no servidor.</p>
+
+<p><a href="privacidade.html">Política de privacidade</a></p>
+</main>
+<script>
+// aberta pelo site (codenge.github.io) a página chama o servidor do jogo; aberta pelo próprio servidor, usa o mesmo endereço
+const API = location.hostname.endsWith('.github.io') ? 'https://desktop-oos188m.taila9bd92.ts.net:10000' : '';
+const enviar = (form, corpo) => async ev => {
+  ev.preventDefault();
+  const msg = form.querySelector('.msg'), botao = form.querySelector('button');
+  msg.className = 'msg'; msg.textContent = 'Excluindo...'; botao.disabled = true;
+  try {
+    const r = await fetch(API + '/api/conta/excluir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo()) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.erro || 'Não foi possível excluir agora. Tente de novo mais tarde.');
+    msg.className = 'msg ok'; msg.textContent = 'Pronto: seus dados foram excluídos do servidor.';
+    form.reset();
+  } catch (e) {
+    msg.className = 'msg erro'; msg.textContent = e.message === 'Failed to fetch' ? 'Sem conexão com o servidor. Tente de novo mais tarde.' : e.message;
+  }
+  botao.disabled = false;
+};
+const fConta = document.getElementById('fConta'), fCodigo = document.getElementById('fCodigo');
+fConta.onsubmit = enviar(fConta, () => ({ usuario: document.getElementById('usuario').value.trim(), senha: document.getElementById('senha').value }));
+fCodigo.onsubmit = enviar(fCodigo, () => ({ codigo: document.getElementById('codigo').value }));
+</script>
+</body>
+</html>

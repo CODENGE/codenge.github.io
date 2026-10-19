@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recuperar senha · Reinos e Eras</title>
+<style>
+  :root { --fundo: #f6f1e7; --texto: #2b2118; --suave: #6b5a48; --borda: #d9cdb8; --link: #8a4b14; --caixa: #fffaf1; --erro: #a3261b; --ok: #2f6b2a; --botao: #8a4b14; }
+  @media (prefers-color-scheme: dark) { :root { --fundo: #17110b; --texto: #efe4d2; --suave: #b9a68c; --borda: #3a2d20; --link: #f0b45a; --caixa: #20180f; --erro: #f08a7e; --ok: #8fd287; --botao: #b06a24; } }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.8rem; margin: 0 0 4px; } h2 { font-size: 1.15rem; margin: 28px 0 6px; padding-top: 12px; border-top: 1px solid var(--borda); }
+  .sub { color: var(--suave); margin: 0 0 20px; } a { color: var(--link); }
+  form { background: var(--caixa); border: 1px solid var(--borda); border-radius: 10px; padding: 16px; margin: 12px 0; }
+  label { display: block; font-weight: 600; margin: 10px 0 4px; }
+  input { box-sizing: border-box; width: 100%; padding: 10px; font: inherit; border: 1px solid var(--borda); border-radius: 8px; background: var(--fundo); color: var(--texto); }
+  button { margin-top: 14px; padding: 10px 18px; font: inherit; font-weight: 600; border: 0; border-radius: 8px; background: var(--botao); color: #fff; cursor: pointer; }
+  button:disabled { opacity: .6; cursor: default; }
+  .msg { margin: 10px 0 0; font-weight: 600; } .msg.erro { color: var(--erro); } .msg.ok { color: var(--ok); }
+</style>
+</head>
+<body>
+<main>
+<h1>Recuperar senha</h1>
+<p class="sub">Reinos e Eras</p>
+
+<p>As contas do jogo não pedem e-mail. Por isso, para criar uma senha nova você usa o <b>código da vila</b>: ele prova que a vila é sua.</p>
+<p>Onde achar o código: abra o jogo num aparelho em que a vila ainda esteja aberta, toque em <b>Menu</b> e copie o código da caixa de texto. Ele também funciona na versão web.</p>
+
+<form id="fSenha">
+  <label for="codigo">Código da vila</label>
+  <input id="codigo" required autocomplete="off" spellcheck="false">
+  <label for="senha">Senha nova</label>
+  <input id="senha" type="password" autocomplete="new-password" required minlength="6" maxlength="100">
+  <label for="senha2">Repita a senha nova</label>
+  <input id="senha2" type="password" autocomplete="new-password" required minlength="6" maxlength="100">
+  <button>Trocar a senha</button>
+  <p class="msg" role="status"></p>
+</form>
+
+<h2>Não tem o código?</h2>
+<p>Escreva para <a href="mailto:eduardojvr10@gmail.com?subject=Reinos%20e%20Eras%20-%20recuperar%20senha">eduardojvr10@gmail.com</a> com o nome de usuário, o nome da vila e o que você lembrar dela (era, nível, prédios). Se der para confirmar que a vila é sua, ajudamos a recuperar o acesso.</p>
+
+<p><a href="excluir-conta.html">Excluir conta e dados</a> · <a href="privacidade.html">Política de privacidade</a></p>
+</main>
+<script>
+// aberta pelo site (codenge.github.io) a página chama o servidor do jogo; aberta pelo próprio servidor, usa o mesmo endereço
+const API = location.hostname.endsWith('.github.io') ? 'https://desktop-oos188m.taila9bd92.ts.net:10000' : '';
+const form = document.getElementById('fSenha');
+form.onsubmit = async ev => {
+  ev.preventDefault();
+  const msg = form.querySelector('.msg'), botao = form.querySelector('button');
+  const senha = document.getElementById('senha').value;
+  if (senha !== document.getElementById('senha2').value) { msg.className = 'msg erro'; msg.textContent = 'As duas senhas não são iguais.'; return; }
+  msg.className = 'msg'; msg.textContent = 'Trocando...'; botao.disabled = true;
+  try {
+    const r = await fetch(API + '/api/conta/nova-senha', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ codigo: document.getElementById('codigo').value, senha }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.erro || 'Não foi possível trocar a senha agora. Tente de novo mais tarde.');
+    msg.className = 'msg ok'; msg.textContent = 'Pronto! Entre no jogo com o usuário "' + d.usuario + '" e a senha nova.';
+    form.reset();
+  } catch (e) {
+    msg.className = 'msg erro'; msg.textContent = e.message === 'Failed to fetch' ? 'Sem conexão com o servidor. Tente de novo mais tarde.' : e.message;
+  }
+  botao.disabled = false;
+};
+</script>
+</body>
+</html>
